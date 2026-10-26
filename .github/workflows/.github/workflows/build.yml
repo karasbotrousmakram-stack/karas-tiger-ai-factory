@@ -1,0 +1,42 @@
+name: Build KARAS AI Factory APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Create Flutter project
+        run: flutter create --platforms=android --org com.karas.tiger factory_build
+
+      - name: Copy source files
+        run: |
+          cp lib/main.dart factory_build/lib/main.dart
+          cp pubspec.yaml factory_build/pubspec.yaml
+
+      - name: Get dependencies
+        working-directory: factory_build
+        run: flutter pub get
+
+      - name: Build APK
+        working-directory: factory_build
+        run: flutter build apk --release
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: karas-ai-factory-apk
+          path: factory_build/build/app/outputs/flutter-apk/app-release.apk
